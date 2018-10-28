@@ -23,12 +23,12 @@ class ImageGetter:
         if self.__query is None:
             raise Exception('queryがセットされていません')
         ret_urls = []
-        for urls_list in self.get_urls_list_maximum_iterate():
+        for urls_list in self.get_urls_iterator():
             ret_urls.extend(urls_list)
         return ret_urls
 
     # urlデータリストをapi実行毎にyieldで返してくる
-    def get_urls_list_maximum_iterate(self):
+    def get_urls_iterator(self):
         if self.__query is None:
             raise Exception('queryがセットされていません')
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     image_getter = ImageGetter(api)
     image_getter.set_query(query)
     image_getter.out_detail_message = True
-    for images_list in image_getter.get_urls_list_maximum_iterate():
+    for images_list in image_getter.get_urls_iterator():
         for images_data in images_list:
             for url in images_data['image_urls']:
                 print('{0} {1}'.format(images_data['id'], url), flush=True)

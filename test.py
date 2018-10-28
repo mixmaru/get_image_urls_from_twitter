@@ -9,34 +9,66 @@ from twitter_api.mock_twitter_api import MockTwitterApi
 
 
 class TestMain(unittest.TestCase):
+    # 実際のtwitter apiに接続してsearch apiが実行できているかをテスト
     def test_execute_real_twitter_api(self):
         twitter_api = TwitterApi(config.CONSUMER_KEY, config.CONSUMER_SECRET, config.ACCESS_TOKEN,
                                  config.ACCESS_TOKEN_SECRET)
         res = twitter_api.exec_search('#虹')
         self.assertTrue(res.status_code == 200)
 
+    # MockTwitterApi.exec_searchの実行テスト：デフォルト実行
     def test_execute_mock_twitter_api(self):
         twitter_api = MockTwitterApi()
-        twitter_api.set_once_getting_num = 10
-        twitter_api.set_maximum_id = 100
         res = twitter_api.exec_search('#虹')
 
-        expect_content = json.dumps(self.__create_expect_content(max_id=100, since_id=91)).encode()
         self.assertTrue(res.status_code == 200)
+        expect_content = json.dumps(self.__create_expect_content(max_id=100, since_id=91)).encode()
         self.assertEqual(expect_content, res.content)
 
-        # もう一回実行
+    # MockTwitterApi.exec_searchの実行テスト：一回実行で取得される数を指定
+    def test_execute_mock_twitter_api_01(self):
+        twitter_api = MockTwitterApi()
+        twitter_api.set_once_getting_num(20)
         res = twitter_api.exec_search('#虹')
-        expect_content = json.dumps(self.__create_expect_content(max_id=100, since_id=91)).encode()
+
         self.assertTrue(res.status_code == 200)
+        expect_content = json.dumps(self.__create_expect_content(max_id=100, since_id=81)).encode()
         self.assertEqual(expect_content, res.content)
 
-        # max_idを指定して実行
-        res = twitter_api.exec_search('#虹', max_id=5)
-        expect_content = json.dumps(self.__create_expect_content(max_id=5, since_id=0)).encode()
+    # MockTwitterApi.exec_searchの実行テスト：一回に取得する数が取得されるtweet_idが最大値と最小値内に収まる場合
+    def test_execute_mock_twitter_api_02(self):
+        twitter_api = MockTwitterApi()
+        twitter_api.set_minimum_id(300)
+        twitter_api.set_maximum_id(400)
+        twitter_api.set_once_getting_num(100)
+        res = twitter_api.exec_search('#虹')
+
         self.assertTrue(res.status_code == 200)
+        expect_content = json.dumps(self.__create_expect_content(max_id=400, since_id=301)).encode()
         self.assertEqual(expect_content, res.content)
 
+    # MockTwitterApi.exec_searchの実行テスト：一回に取得する数が取得されるtweet_idが最大値と最小値内に収まらない場合
+    def test_execute_mock_twitter_api_03(self):
+        twitter_api = MockTwitterApi()
+        twitter_api.set_minimum_id(300)
+        twitter_api.set_maximum_id(400)
+        twitter_api.set_once_getting_num(1000)
+        res = twitter_api.exec_search('#虹')
+
+        self.assertTrue(res.status_code == 200)
+        expect_content = json.dumps(self.__create_expect_content(max_id=400, since_id=300)).encode()
+        self.assertEqual(expect_content, res.content)
+
+    # MockTwitterApi.exec_searchの実行テスト：取得できるtweet_idの最大値が最小値よりも小さかった場合
+    def test_execute_mock_twitter_api_04(self):
+        twitter_api = MockTwitterApi()
+        twitter_api.set_minimum_id(300)
+        twitter_api.set_maximum_id(200)
+        with self.assertRaises(Exception):
+            res = twitter_api.exec_search('#虹')
+
+    # tweet_idがmax_idのものから、since_idのものまでのデータを作成。
+    # 3で割り切れるtweet_idのデータには画像urlが2つ({tweet_id}_1.jpg,{tweet_id}_2.jpg)存在する
     def __create_expect_content(self, max_id: int, since_id: int):
         ret_data = {'statuses': []}
         for id in reversed(range(since_id, max_id + 1)):
@@ -58,6 +90,7 @@ class TestMain(unittest.TestCase):
     def __create_expect_image_url(i1: int, i2: int):
         return 'https://{0}_{1}.jpg'.format(i1, i2)
 
+    # ImageGetter.get_urlsのテスト：max_idからminimum_idまでのデータを一括取得できているか？
     def test_image_getter(self):
         twitter_api = MockTwitterApi()
         twitter_api.set_once_getting_num(10)
@@ -71,10 +104,7 @@ class TestMain(unittest.TestCase):
         expect_urls = self.__create_image_getter_expect_urls(max_id=100, since_id=0)
         self.assertListEqual(expect_urls, image_urls)
 
-        image_getter.set_query('#雨')
-        image_urls = image_getter.get_urls()
-        self.assertListEqual(expect_urls, image_urls)
-
+    # ImageGetter.get_urls_iteratorのテスト：max_idからminimum_idまでのデータを一括取得できているか？
     def test_image_getter_iterate(self):
         twitter_api = MockTwitterApi()
         twitter_api.set_once_getting_num(20)
@@ -84,7 +114,7 @@ class TestMain(unittest.TestCase):
         image_getter.set_sleep(0)
         image_getter.set_query('#虹')
         got_urls = []
-        for images_list in image_getter.get_urls_list_maximum_iterate():
+        for images_list in image_getter.get_urls_iterator():
             got_urls.extend(images_list)
 
         expect_urls = self.__create_image_getter_expect_urls(max_id=200, since_id=101)
