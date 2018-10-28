@@ -4,6 +4,8 @@ from requests import Response
 from .twitter_api_interface import TwitterApiInterface
 
 
+# twitter search apiのラッパーのモック。
+# 3で割り切れるtweet_idのデータには画像urlが2つ({tweet_id}_1.jpg,{tweet_id}_2.jpg)存在する
 class MockTwitterApi(TwitterApiInterface):
     def __init__(self):
         self.__query = None
@@ -23,6 +25,9 @@ class MockTwitterApi(TwitterApiInterface):
         self.__minimum_id = id
 
     def exec_search(self, query, max_id=None):
+        if self.__minimum_id > self.__maximum_id:
+            raise Exception("maximum_idよりもminimu_idに大きな値がセットされています")
+
         self.__query = query
 
         response = Response()
