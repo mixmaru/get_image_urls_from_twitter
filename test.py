@@ -151,28 +151,6 @@ class TestMain(unittest.TestCase):
         exec_time = time.time() - start
         self.assertTrue(exec_time >= 1)
 
-    @staticmethod
-    def __make_test_file(file_name):
-        f = open(file_name, "w", encoding="utf-8")
-        f.write("初期入力データ\n")
-        f.close()
-
-    def __get_image_urls_maximum(self, content):
-        ret_list = []
-        for i in range(2):
-            ret_list.extend(self.__get_image_urls_once(content))
-        return ret_list
-
-    @staticmethod
-    def __get_image_urls_once(content):
-        ret_list = []
-        content = json.loads(content)
-        for tweet in content['statuses']:
-            if 'extended_entities' in tweet:
-                for image in tweet['extended_entities']['media']:
-                    ret_list.append(image['media_url_https'])
-        return ret_list
-
 
 if __name__ == "__main__":
     unittest.main()
