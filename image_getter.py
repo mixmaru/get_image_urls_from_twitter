@@ -2,8 +2,7 @@ import sys
 import json
 import time
 
-import config
-from twitter_api import twitter_api_interface, twitter_api
+from .twitter_api import twitter_api_interface, twitter_api
 
 
 class ImageGetter:
@@ -101,6 +100,7 @@ class ImageGetter:
 
 
 if __name__ == "__main__":
+    from . import config
     args = sys.argv
 
     if len(args) < 2:

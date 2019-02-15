@@ -2,10 +2,10 @@ import json
 import time
 import unittest
 
-import config
-from image_getter import ImageGetter
-from twitter_api.twitter_api import TwitterApi
-from twitter_api.mock_twitter_api import MockTwitterApi
+from . import config
+from .image_getter import ImageGetter
+from .twitter_api.twitter_api import TwitterApi
+from .twitter_api.mock_twitter_api import MockTwitterApi
 
 
 class TestMain(unittest.TestCase):
