@@ -3,7 +3,7 @@ import json
 import time
 import logging
 
-from .twitter_api import twitter_api_interface, twitter_api
+from twitter_api import twitter_api_interface, twitter_api
 
 
 class ImageGetter:
