@@ -1,15 +1,17 @@
 import sys
 import json
 import time
+import logging
 
 from .twitter_api import twitter_api_interface, twitter_api
 
 
 class ImageGetter:
+    __logger = logging.getLogger(__name__)
+
     def __init__(self, api: twitter_api_interface):
         self.__api = api
         self.__query = None
-        self.out_detail_message = False
         self.__sleep = 1
 
     def set_sleep(self, seconds: int):
@@ -46,7 +48,7 @@ class ImageGetter:
                 yield images_list
             else:
                 # 空なら終了
-                self.__print('これ以上取得できるデータがありません。')
+                ImageGetter.__logger.info('これ以上取得できるデータがありません。')
                 break
 
     # api一回実行分のデータを取得し、データを成形して返す
@@ -61,16 +63,16 @@ class ImageGetter:
     def __get_data_from_api(self, max_id: int=None):
         while True:
             result = self.__api.exec_search(self.__query, max_id=max_id)
-            self.__print('api実行')
+            ImageGetter.__logger.info('api実行')
             if result.status_code == 200:
                 return result
             if result.status_code == 429:
-                self.__print('api制限。1分待機')
+                ImageGetter.__logger.info('api制限。1分待機')
                 time.sleep(60)
                 continue
             else:
                 msg = "apiへの接続に失敗しました。status code[{0}]".format(result.status_code)
-                self.__print(msg)
+                ImageGetter.__logger.info(msg)
                 raise Exception(msg)
 
     # apiからの返却データからimage_urlとidデータだけを取得してリストにして返す。image_urlデータがないものは含めない
@@ -94,10 +96,6 @@ class ImageGetter:
                 ret_data['image_urls'].append(image['media_url_https'])
         return ret_data
 
-    def __print(self, message):
-        if self.out_detail_message:
-            print(message, flush=True)
-
 
 if __name__ == "__main__":
     from . import config
@@ -111,7 +109,6 @@ if __name__ == "__main__":
     api = twitter_api.TwitterApi(config.CONSUMER_KEY, config.CONSUMER_SECRET, config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
     image_getter = ImageGetter(api)
     image_getter.set_query(query)
-    image_getter.out_detail_message = True
     for images_list in image_getter.get_urls_iterator():
         for images_data in images_list:
             for url in images_data['image_urls']:
