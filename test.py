@@ -2,17 +2,17 @@ import json
 import time
 import unittest
 
-from . import config
-from .image_getter import ImageGetter
-from .twitter_api.twitter_api import TwitterApi
-from .twitter_api.mock_twitter_api import MockTwitterApi
+from image_getter.config import *
+from image_getter.image_getter import ImageGetter
+from image_getter.twitter_api.twitter_api import TwitterApi
+from image_getter.twitter_api.mock_twitter_api import MockTwitterApi
 
 
 class TestMain(unittest.TestCase):
     # 実際のtwitter apiに接続してsearch apiが実行できているかをテスト
     def test_execute_real_twitter_api(self):
-        twitter_api = TwitterApi(config.CONSUMER_KEY, config.CONSUMER_SECRET, config.ACCESS_TOKEN,
-                                 config.ACCESS_TOKEN_SECRET)
+        twitter_api = TwitterApi(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN,
+                                 ACCESS_TOKEN_SECRET)
         res = twitter_api.exec_search('#虹')
         self.assertTrue(res.status_code == 200)
 
