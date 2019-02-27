@@ -55,7 +55,7 @@ $ pipenv shell
 
 画像url取得実行
 ```
-$ python -m image_getter "#雲"
+$ python -m image_getter.image_getter "#雲"
 ```
 
 標準出力にurlのリストが出力される
@@ -69,4 +69,12 @@ $ python -m image_getter "#雲"
 ...
 ```
 
-
+since_idを指定すると、そのidの直前までデータを取得して終了する。
+```
+$ python -m image_getter.image_getter "#雲" 1041553382329204736
+```
+```
+(tweet id)          (画像url)
+1041553909938974722 https://pbs.twimg.com/media/DnRUxRoUcAEtG_H.jpg
+（次のid 1041553382329204736のデータは取得されない）
+```

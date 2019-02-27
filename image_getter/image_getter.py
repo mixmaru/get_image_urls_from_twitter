@@ -101,15 +101,26 @@ if __name__ == "__main__":
     from . import config
     args = sys.argv
 
-    if len(args) < 2:
-        print("python -m image_getter [query]")
+    args_length = len(args)
+    if not (args_length == 2 or args_length == 3):
+        print("python -m image_getter <query> [<since_id>]")
         exit(1)
-
+    # クエリの取得
     query = str(args[1])
+
+    # since_idの取得
+    since_id = None
+    if args_length == 3:
+        try:
+            since_id = int(args[2])
+        except ValueError:
+            print("[since_id] must be int")
+            exit(1)
+
     api = twitter_api.TwitterApi(config.CONSUMER_KEY, config.CONSUMER_SECRET, config.ACCESS_TOKEN, config.ACCESS_TOKEN_SECRET)
     image_getter = ImageGetter(api)
     image_getter.set_query(query)
-    for images_list in image_getter.get_urls_iterator():
+    for images_list in image_getter.get_urls_iterator(since_id):
         for images_data in images_list:
             for url in images_data['image_urls']:
                 print('{0} {1}'.format(images_data['id'], url), flush=True)
