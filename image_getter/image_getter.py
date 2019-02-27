@@ -20,16 +20,16 @@ class ImageGetter:
     def set_query(self, query: str):
         self.__query = query
 
-    def get_urls(self):
+    def get_urls(self, since_id=None):
         if self.__query is None:
             raise Exception('queryがセットされていません')
         ret_urls = []
-        for urls_list in self.get_urls_iterator():
+        for urls_list in self.get_urls_iterator(since_id=since_id):
             ret_urls.extend(urls_list)
         return ret_urls
 
     # urlデータリストをapi実行毎にyieldで返してくる
-    def get_urls_iterator(self):
+    def get_urls_iterator(self, since_id=None):
         if self.__query is None:
             raise Exception('queryがセットされていません')
 
@@ -38,7 +38,7 @@ class ImageGetter:
             if prev_last_id is None:
                 time.sleep(self.__sleep) # apiに負荷をかけないため
 
-            images_list = self.__get_urls_by_once_execution(prev_last_id)
+            images_list = self.__get_urls_by_once_execution(prev_last_id, since_id)
             # 初回実行でない場合は、最初の一つが前回取得済のデータである場合があるので取り除く
             if len(images_list) >= 1 and images_list[0]['id'] == prev_last_id:
                 images_list.pop(0)
@@ -52,17 +52,17 @@ class ImageGetter:
                 break
 
     # api一回実行分のデータを取得し、データを成形して返す
-    def __get_urls_by_once_execution(self, max_id: int=None):
+    def __get_urls_by_once_execution(self, max_id: int=None, since_id: int=None):
         if self.__query is None:
             raise Exception('queryがセットされていません')
 
-        result = self.__get_data_from_api(max_id)
+        result = self.__get_data_from_api(max_id, since_id)
         return self.__create_urls_data_from_api_result_content(result.content)
 
     # apiを一回実行する
-    def __get_data_from_api(self, max_id: int=None):
+    def __get_data_from_api(self, max_id: int=None, since_id: int=None):
         while True:
-            result = self.__api.exec_search(self.__query, max_id=max_id)
+            result = self.__api.exec_search(self.__query, max_id=max_id, since_id=since_id)
             ImageGetter.__logger.info('api実行')
             if result.status_code == 200:
                 return result
