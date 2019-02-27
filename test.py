@@ -80,6 +80,14 @@ class TestMain(unittest.TestCase):
         with self.assertRaises(Exception):
             res = twitter_api.exec_search('#虹')
 
+    # MockTwitterApi.exec_searchの実行テスト：since_id指定実行（最新からtwitter_idがsince_idのものまで（since_idのtweetは含まれない）取得される）
+    def test_execute_mock_twitter_api_05(self):
+        twitter_api = MockTwitterApi()
+        res = twitter_api.exec_search('#虹', since_id=95)
+        self.assertTrue(res.status_code == 200)
+        expect_content = json.dumps(self.__create_expect_content(max_id=100, since_id=96)).encode()
+        self.assertEqual(expect_content, res.content)
+
     # tweet_idがmax_idのものから、since_idのものまでのデータを作成。
     # 3で割り切れるtweet_idのデータには画像urlが2つ({tweet_id}_1.jpg,{tweet_id}_2.jpg)存在する
     def __create_expect_content(self, max_id: int, since_id: int):
