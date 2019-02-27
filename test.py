@@ -13,7 +13,20 @@ class TestMain(unittest.TestCase):
     def test_execute_real_twitter_api(self):
         twitter_api = TwitterApi(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN,
                                  ACCESS_TOKEN_SECRET)
+        # 通常呼び出しでapiが通るかテスト
         res = twitter_api.exec_search('#虹')
+        self.assertTrue(res.status_code == 200)
+
+        # max_id指定で呼び出しでapiが通るかテスト
+        res = twitter_api.exec_search('#虹', max_id=1100572682528088064)
+        self.assertTrue(res.status_code == 200)
+
+        # since_id指定で呼び出しでapiが通るかテスト
+        res = twitter_api.exec_search('#虹', since_id=1100563806785130496)
+        self.assertTrue(res.status_code == 200)
+
+        # since_id, max_id指定で呼び出しでapiが通るかテスト
+        res = twitter_api.exec_search('#虹', since_id=1100563806785130496, max_id=1100572682528088064)
         self.assertTrue(res.status_code == 200)
 
     # MockTwitterApi.exec_searchの実行テスト：デフォルト実行
