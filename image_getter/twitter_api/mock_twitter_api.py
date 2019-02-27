@@ -24,7 +24,7 @@ class MockTwitterApi(TwitterApiInterface):
     def set_minimum_id(self, id: int):
         self.__minimum_id = id
 
-    def exec_search(self, query, max_id=None):
+    def exec_search(self, query, max_id=None, since_id=None):
         if self.__minimum_id > self.__maximum_id:
             raise Exception("maximum_idよりもminimu_idに大きな値がセットされています")
 
@@ -32,10 +32,10 @@ class MockTwitterApi(TwitterApiInterface):
 
         response = Response()
         response.status_code = 200
-        response._content = self.__create_content(max_id)
+        response._content = self.__create_content(max_id, since_id)
         return response
 
-    def __create_content(self, max_id: int=None):
+    def __create_content(self, max_id: int=None, since_id=None):
         if max_id is None:
             max_id = self.__maximum_id
 
@@ -43,6 +43,8 @@ class MockTwitterApi(TwitterApiInterface):
 
         for i in range(self.__once_getting_num):
             id = max_id - i
+            if since_id is not None and id <= since_id:
+                break
             if id < self.__minimum_id:
                 break
 

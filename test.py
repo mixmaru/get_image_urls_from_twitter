@@ -13,7 +13,20 @@ class TestMain(unittest.TestCase):
     def test_execute_real_twitter_api(self):
         twitter_api = TwitterApi(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN,
                                  ACCESS_TOKEN_SECRET)
+        # 通常呼び出しでapiが通るかテスト
         res = twitter_api.exec_search('#虹')
+        self.assertTrue(res.status_code == 200)
+
+        # max_id指定で呼び出しでapiが通るかテスト
+        res = twitter_api.exec_search('#虹', max_id=1100572682528088064)
+        self.assertTrue(res.status_code == 200)
+
+        # since_id指定で呼び出しでapiが通るかテスト
+        res = twitter_api.exec_search('#虹', since_id=1100563806785130496)
+        self.assertTrue(res.status_code == 200)
+
+        # since_id, max_id指定で呼び出しでapiが通るかテスト
+        res = twitter_api.exec_search('#虹', since_id=1100563806785130496, max_id=1100572682528088064)
         self.assertTrue(res.status_code == 200)
 
     # MockTwitterApi.exec_searchの実行テスト：デフォルト実行
@@ -67,6 +80,14 @@ class TestMain(unittest.TestCase):
         with self.assertRaises(Exception):
             res = twitter_api.exec_search('#虹')
 
+    # MockTwitterApi.exec_searchの実行テスト：since_id指定実行（最新からtwitter_idがsince_idのものまで（since_idのtweetは含まれない）取得される）
+    def test_execute_mock_twitter_api_05(self):
+        twitter_api = MockTwitterApi()
+        res = twitter_api.exec_search('#虹', since_id=95)
+        self.assertTrue(res.status_code == 200)
+        expect_content = json.dumps(self.__create_expect_content(max_id=100, since_id=96)).encode()
+        self.assertEqual(expect_content, res.content)
+
     # tweet_idがmax_idのものから、since_idのものまでのデータを作成。
     # 3で割り切れるtweet_idのデータには画像urlが2つ({tweet_id}_1.jpg,{tweet_id}_2.jpg)存在する
     def __create_expect_content(self, max_id: int, since_id: int):
@@ -104,6 +125,11 @@ class TestMain(unittest.TestCase):
         expect_urls = self.__create_image_getter_expect_urls(max_id=100, since_id=0)
         self.assertListEqual(expect_urls, image_urls)
 
+        # since_idを指定してテスト
+        image_urls = image_getter.get_urls(since_id=50)
+        expect_urls = self.__create_image_getter_expect_urls(max_id=100, since_id=51)
+        self.assertListEqual(expect_urls, image_urls)
+
     # ImageGetter.get_urls_iteratorのテスト：max_idからminimum_idまでのデータを一括取得できているか？
     def test_image_getter_iterate(self):
         twitter_api = MockTwitterApi()
@@ -118,6 +144,14 @@ class TestMain(unittest.TestCase):
             got_urls.extend(images_list)
 
         expect_urls = self.__create_image_getter_expect_urls(max_id=200, since_id=101)
+        self.assertListEqual(expect_urls, got_urls)
+
+        # since_idを指定してテスト
+        got_urls = []
+        for images_list in image_getter.get_urls_iterator(since_id=150):
+            got_urls.extend(images_list)
+
+        expect_urls = self.__create_image_getter_expect_urls(max_id=200, since_id=151)
         self.assertListEqual(expect_urls, got_urls)
 
     def __create_image_getter_expect_urls(self, max_id: int, since_id: int):
